@@ -9,21 +9,30 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from SuperHero import Hero
 import pickle
-from random import randint
 from Fight import Ui_MainWindow
 
-with open('heros.pickle', 'rb') as heroes:
+with open('heroes.pickle', 'rb') as heroes:
     all_heroes = pickle.load(heroes)
+
+hero_dict={}
+
+for i in range(len(all_heroes)):
+    hero_dict[all_heroes[i].id_nr] = i
 
 #hero_list = (hero.hero_stats() for hero in all_heroes)
 hero_cnt = len(all_heroes)
 
 class Ui_WelcomeWindow(object):
+
+    def __init__(self, MainWindow):
+        self.MainWindow = MainWindow
+
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(800, 600)
         MainWindow.setStyleSheet("background-color: rgb(120, 0, 0);\n"
-"background-color: rgb(43, 0, 68);")
+"background-color: rgb(0,0,0);")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.label_3 = QtWidgets.QLabel(self.centralwidget)
@@ -33,7 +42,7 @@ class Ui_WelcomeWindow(object):
         self.label_4.setGeometry(QtCore.QRect(210, 190, 371, 101))
         self.label_4.setObjectName("label_4")
         self.comboBox = QtWidgets.QComboBox(self.centralwidget)
-        self.comboBox.setGeometry(QtCore.QRect(20, 330, 761, 41))
+        self.comboBox.setGeometry(QtCore.QRect(70, 330, 671, 41))
         self.comboBox.setStyleSheet("color: rgb(245, 217, 0);\n"
 "font: 9pt \"MS Shell Dlg 2\";")
         self.comboBox.setObjectName("comboBox")
@@ -67,13 +76,12 @@ class Ui_WelcomeWindow(object):
         self.pushButton.clicked.connect(self.start_click)
 
     def start_click(self):
-        hero_id = self.comboBox.currentText().split(".")[0]
+        hero_id = int(self.comboBox.currentText().split(".")[0])
 
-        rand = randint(1,hero_cnt)
 
-        hero_h = all_heroes[int(hero_id)-1]
+        hero_h = all_heroes[hero_dict[hero_id]]
 
-        hero_c = all_heroes[rand-1]
+        hero_c = Hero.random_hero(all_heroes)
 
         with open('image_c.jpg', 'wb') as img:
             img.write(hero_c.image)
@@ -82,8 +90,9 @@ class Ui_WelcomeWindow(object):
             img.write(hero_h.image)
 
         self.window = QtWidgets.QMainWindow()
-        self.ui = Ui_MainWindow(hero_c, hero_h)
+        self.ui = Ui_MainWindow(hero_c, hero_h, self.window)
         self.ui.setupUi(self.window)
+        MainWindow.hide()
         self.window.show()
 
 
@@ -95,7 +104,7 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
 
-    ui = Ui_WelcomeWindow()
+    ui = Ui_WelcomeWindow(MainWindow)
     ui.setupUi(MainWindow)
     MainWindow.show()
     sys.exit(app.exec_())
