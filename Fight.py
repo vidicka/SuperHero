@@ -7,18 +7,26 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from SuperHero import Hero_fight
+from Winner import Ui_WinnerWindow
+import time
+from PyQt5.QtCore import  pyqtSignal
 
 class Ui_MainWindow(object):
 
-    def __init__(self, hero_c, hero_h):
-        self.hero_h = hero_h
-        self.hero_c = hero_c
+
+
+    def __init__(self, hero_c, hero_h, MainWindow):
+        self.hero_h = hero_h.hero_to_fight()
+        self.hero_c = hero_c.hero_to_fight()
+        self.MainWindow = MainWindow
+        self.trigger = pyqtSignal()
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.setEnabled(True)
         MainWindow.resize(1095, 794)
-        MainWindow.setStyleSheet("background-color: rgb(43, 0, 68);\n"
+        MainWindow.setStyleSheet("background-color: rgb(0,0,0);\n"
 "")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -30,13 +38,13 @@ class Ui_MainWindow(object):
         self.image_human.setGeometry(QtCore.QRect(690, 100, 161, 251))
         self.image_human.setObjectName("image_human")
         self.health_comp = QtWidgets.QLabel(self.centralwidget)
-        self.health_comp.setGeometry(QtCore.QRect(220, 80, 221, 16))
+        self.health_comp.setGeometry(QtCore.QRect(220, 80, self.hero_c.health, 16))
         self.health_comp.setStyleSheet("color: rgb(255, 0, 4);\n"
 "background-color: rgb(255, 0, 4);\n"
 "background-color: rgb(212, 0, 3);")
         self.health_comp.setObjectName("health_comp")
         self.health_human = QtWidgets.QLabel(self.centralwidget)
-        self.health_human.setGeometry(QtCore.QRect(660, 80, 221, 16))
+        self.health_human.setGeometry(QtCore.QRect(660, 80, self.hero_h.health, 16))
         self.health_human.setStyleSheet("color: rgb(255, 0, 4);\n"
 "background-color: rgb(255, 0, 4);\n"
 "background-color: rgb(212, 0, 3);")
@@ -89,6 +97,7 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
+
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
@@ -110,6 +119,82 @@ class Ui_MainWindow(object):
         self.label_attack_log.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:9pt; color:#f8e801;\">Attack 1: Comp delt 0 dmg</span></p></body></html>"))
         self.label_damage_2.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-size:9pt; color:#f8e801;\">MELEE ATACK</span></p></body></html>"))
 
+        self.Melleebtn.clicked.connect(self.melee)
+        # self.Melleebtn.clicked.connect(self.com_fight)
+
+        # self.Melleebtn.released.connect(self.com_fight)
+        self.Rangebtn.clicked.connect(self.ranged)
+        # self.Rangebtn.released.connect(self.com_fight)
+        self.Rangebtn_2.clicked.connect(self.power_up)
+        # self.Rangebtn_2.released.connect(self.com_fight)
+
+
+
+    def melee(self):
+        self.fight(self.hero_h, self.hero_c, 'melee')
+
+        self.fight(self.hero_c, self.hero_h, self.hero_c.choose_attack())
+
+    def ranged(self):
+        self.fight(self.hero_h, self.hero_c, 'ranged')
+    
+        self.fight(self.hero_c, self.hero_h, self.hero_c.choose_attack())
+
+    def power_up(self):
+        if self.hero_h.round_cnt % 3 != 0:
+            return
+        self.fight(self.hero_h, self.hero_c, 'power_up')
+
+        self.fight(self.hero_c, self.hero_h, self.hero_c.choose_attack())
+    
+
+    def com_fight(self):
+        self.fight(self.hero_c, self.hero_h, self.hero_c.choose_attack())
+
+    def fight(self, hero, other, attack_type):
+
+        print(hero.health)
+        print(other.health)
+        if attack_type == 'power_up':
+            if hero.round_cnt % 3 != 0:
+
+                return
+            else:
+                hero.power_up_hero()
+                hero.round_cnt += 1
+                # hero.round_cnt = 0
+                return
+
+        other.take_dmg(hero.attack(attack_type))
+
+
+        hero.round_cnt += 1
+
+
+
+    
+        if other.health <= 0:
+
+            with open('image_w.jpg', 'wb') as img:
+                img.write(hero.image)
+
+
+            self.window = QtWidgets.QMainWindow()
+            self.ui = Ui_WinnerWindow(hero)
+            self.ui.setupUi(self.window)
+            self.MainWindow.hide()
+
+            self.window.show()
+      
+        # self.setupUi(self.MainWindow)
+        self.health_comp.setGeometry(QtCore.QRect(220, 80, self.hero_c.health, 16))
+        self.health_human.setGeometry(QtCore.QRect(660, 80, self.hero_h.health, 16))
+
+        print(hero.health)
+        print(other.health)
+        print(hero.round_cnt)
+
+
 # import image_c_rc
 # import image_h_rc
 
@@ -117,7 +202,7 @@ if __name__ == "__main__":
     import sys
     import pickle
     from random import randint
-    from SuperHero import Hero
+    from SuperHero import Hero 
     import os
 
     try:
@@ -129,12 +214,9 @@ if __name__ == "__main__":
         with open('heros.pickle', 'rb') as heroes:
             all_heroes = pickle.load(heroes)
     
-    hero_cnt = len(all_heroes)
-    randc = randint(1,hero_cnt)
-    randh = randint(1,hero_cnt)
+    hero_c = Hero.random_hero(all_heroes).hero_to_fight()
 
-    hero_c = all_heroes[randc-1]
-    hero_h = all_heroes[randh-1]
+    hero_h = Hero.random_hero(all_heroes).hero_to_fight()
 
     with open('image_c.jpg', 'wb') as img:
         img.write(hero_c.image)
@@ -145,7 +227,7 @@ if __name__ == "__main__":
 
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow(hero_c, hero_h)
+    ui = Ui_MainWindow(hero_c, hero_h, MainWindow)
     ui.setupUi(MainWindow)
     MainWindow.show()
     sys.exit(app.exec_())
