@@ -132,18 +132,28 @@ class Hero:
 		return f"{self.__id_nr}. {self.__name} - INT: {self.__intelligence} STR: {self.__strength} SPD: {self.__speed} DUR: {self.__durability} POW: {self.__power} CMB: {self.__combat}"
 
 	def random_hero(hero_list):
+		"""
+		Returns random hero from the list that is from eather Marvel or DC Comics
+		"""
 
 		hero_cnt = len(hero_list)
 		
 		while True:
 			rand = randint(1,hero_cnt)
 
-			hero = hero_list[rand-1]
+			try:
+				hero = hero_list[rand]
+			except:
+				continue
 
 			if hero.publisher == "DC Comics" or hero.publisher == "Marvel Comics":
 				return hero
 
 	def hero_to_fight(self):
+		"""
+		Returns instance of Hero_fight class
+		:param: hero
+		"""
 		return Hero_fight(self.id_nr, self.name, self.intelligence, self.strength, self.speed, self.durability, self.power, self.combat, self.image, self.publisher, self.img_url)
 
 
@@ -151,35 +161,63 @@ class Hero:
 class Hero_fight(Hero):
 
 	def __init__(self, id_nr, name, intelligence, 
-		strength, speed, durability, power, combat, image, publisher, img_url, power_up=0, round_cnt=0):
+		strength, speed, durability, power, combat, image, publisher, img_url, power_up=0, power_cnt= 3, tactics = 0, tactics_cnt = 3):
 		Hero.__init__(self, id_nr, name, intelligence, strength, speed, durability, power, combat, image, publisher, img_url)
 
-		self.health = int(self.durability)*3 + 100
+		self.health = 200
 		self.power_up = power_up
-		self.round_cnt = round_cnt
+		self.power_cnt = power_cnt
+		self.tactics = tactics
+		self.tactics_cnt = tactics_cnt
 
 
 
-	def attack(self, attack_type):
-		if attack_type == 'melee':
+	def attack(self, other, attack_type):
+
+		self.tactics_cnt += 1
+		self.power_cnt += 1
+
+		if attack_type != 'power_up' and attack_type != 'tactitian':
+			dmg = self.attack_roll(attack_type) + self.tactics + int(self.power_up)
+			defence = other.deffence_roll(attack_type) + other.tactics
+			self.power_up = 0
+			self.tactitian = 0
+			if dmg > defence:
+				return dmg - defence
+
+		elif attack_type == 'power_up':
+			self.power_up = self.attack_roll(attack_type)
+			self.power_cnt = 0
+		elif attack_type == 'tactitian':
+			self.tactics = self.attack_roll(attack_type)
+			self.tactics_cnt = 0
+			
+		return 0 
+
+	def attack_roll(self, roll_type):
+
+		if roll_type == 'melee':
 			dice_cnt = (int(self.strength) + int(self.combat))//10
-		elif attack_type == 'ranged':
+			bonus = self.power
+		elif roll_type == 'ranged':
 			dice_cnt = (int(self.speed) + int(self.combat))//10
-		pwr = self.power_up
-		self.power_up = 0
-
-		return Hero_fight.throw_dice(dice_cnt) + pwr		
-
-	
-	def power_up_hero(self):
-		
-		if self.intelligence > self.power:
-			dice_cnt = (int(self.intelligence) + int(self.combat))//10
-		else:
+			bonus = self.power
+		elif roll_type == 'power_up':
 			dice_cnt = (int(self.power) + int(self.combat))//10
+		elif roll_type == 'tactitian':
+			dice_cnt = (int(self.intelligence) + int(self.combat))//10
 
-		self.power_up = Hero_fight.throw_dice(dice_cnt)
+		return Hero_fight.throw_dice(dice_cnt)
 
+	def deffence_roll(self, roll_type):
+		if roll_type == 'melee':
+			dice_cnt = (int(self.strength) + int(self.durability))//10
+			bonus = self.power
+		elif roll_type == 'ranged':
+			dice_cnt = (int(self.speed) + int(self.durability))//10
+			bonus = self.power
+
+		return Hero_fight.throw_dice(dice_cnt)
 
 
 	def throw_dice(dice_cnt):
@@ -188,34 +226,34 @@ class Hero_fight(Hero):
 			dmg += randint(1,10)
 		return dmg
 
-	def take_dmg(self, dmg):
-		if self.health - dmg <= 0:
-			self.health = 0
-		else:
-			self.health -= dmg/2  
+	def random_attack(self):
+		attacks = ['melee','ranged','power_up','tactitian']
 
-	def choose_attack(self):
-		attacks = ['melee','ranged','power_up']
-
-		if (self.round_cnt ) % 3 == 0:
+		if self.power_cnt >= 3 and self.tactics_cnt>=3:
+			ind = randint(0,3)
+		elif self.power_cnt >=3:
 			ind = randint(0,2)
+		elif self.tactics_cnt >=3:
+			ind = randint(0,2)
+			if ind == 2:
+				ind == 3
 		else:
 			ind = randint(0,1)
 
-		print(attacks[ind])
+#		print(attacks[ind])
 		return(attacks[ind])
 
 
 def main():
 
-	all_heroes=[]
+	all_heroes={}
 
 	#URL for the whole list of superheroes and their stats
 	all_stats = requests.get("https://cdn.rawgit.com/akabab/superhero-api/0.2.0/api/all.json")
 
-	powerstats = requests.get("https://cdn.rawgit.com/akabab/superhero-api/0.2.0/api/powerstats/70.json")
-	connections = requests.get("https://cdn.rawgit.com/akabab/superhero-api/0.2.0/api/connections/1.json")
-	hero_id = requests.get("https://cdn.rawgit.com/akabab/superhero-api/0.2.0/api/id/1.json")
+	# powerstats = requests.get("https://cdn.rawgit.com/akabab/superhero-api/0.2.0/api/powerstats/70.json")
+	# connections = requests.get("https://cdn.rawgit.com/akabab/superhero-api/0.2.0/api/connections/1.json")
+	# hero_id = requests.get("https://cdn.rawgit.com/akabab/superhero-api/0.2.0/api/id/1.json")
 
 
 	hero_count = all_stats.text.count('"id":')
@@ -251,7 +289,7 @@ def main():
 		hero =(Hero(i+1, name, intelligence,strength, speed, durability, power, combat, image, publisher, img_url))
 
 		if hero.publisher == "DC Comics" or hero.publisher == "Marvel Comics":
-			all_heroes.append(hero)
+			all_heroes[i+1] = (hero)
 
 	with open('heroes.pickle', 'wb') as heroes:
 		pickle.dump(all_heroes, heroes)
