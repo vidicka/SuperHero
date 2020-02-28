@@ -10,12 +10,24 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from SuperHero import Hero
 import pickle
 from Fight import Ui_MainWindow
+import os
+
+all_heroes = {}
+
+try:
+    with open('heroes.pickle', 'rb') as heroes:
+        all_heroes = pickle.load(heroes)
+except FileNotFoundError:
+    command = 'python SuperHero.py'
+    os.system(command)
+    with open('heroes.pickle', 'rb') as heroes:
+        all_heroes = pickle.load(heroes)
 
 with open('heroes.pickle', 'rb') as heroes:
     all_heroes = pickle.load(heroes)
 
 #hero_list = (hero.hero_stats() for hero in all_heroes)
-hero_cnt = len(all_heroes)
+# hero_cnt = len(all_heroes)
 
 class Ui_WelcomeWindow(object):
 

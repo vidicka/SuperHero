@@ -256,14 +256,21 @@ def main():
 	# hero_id = requests.get("https://cdn.rawgit.com/akabab/superhero-api/0.2.0/api/id/1.json")
 
 
-	hero_count = all_stats.text.count('"id":')
+	# hero_count = all_stats.text.count('"id":')
+	id_list = []
 
-	for i in range (hero_count):
+	compiled_re_id_cnt = re.compile('"id": (\d*)')
+	for match_id in compiled_re_id_cnt.finditer(all_stats.text):
+		ids = match_id.group(1)
+		id_list.append(ids)
+
+
+	for i in id_list:
 
 		#URL for power stats for each hero
-		power_url = f"https://cdn.rawgit.com/akabab/superhero-api/0.2.0/api/powerstats/{i+1}.json" 
+		power_url = f"https://cdn.rawgit.com/akabab/superhero-api/0.2.0/api/powerstats/{i}.json" 
 		#URL for other information about a hero
-		id_url = f"https://cdn.rawgit.com/akabab/superhero-api/0.2.0/api/id/{i+1}.json"		
+		id_url = f"https://cdn.rawgit.com/akabab/superhero-api/0.2.0/api/id/{i}.json"		
 
 
 		powerstats = requests.get(power_url)
@@ -286,10 +293,13 @@ def main():
 			durability = match_stat.group(7)
 			power = match_stat.group(9)
 			combat = match_stat.group(11)
-		hero =(Hero(i+1, name, intelligence,strength, speed, durability, power, combat, image, publisher, img_url))
+		hero =(Hero(int(i), name, intelligence,strength, speed, durability, power, combat, image, publisher, img_url))
 
+		# all_heroes[i+1] = (hero)
 		if hero.publisher == "DC Comics" or hero.publisher == "Marvel Comics":
-			all_heroes[i+1] = (hero)
+			all_heroes[int(i)] = (hero)
+
+
 
 	with open('heroes.pickle', 'wb') as heroes:
 		pickle.dump(all_heroes, heroes)

@@ -398,12 +398,12 @@ if __name__ == "__main__":
     import os
 
     try:
-        with open('heros.pickle', 'rb') as heroes:
+        with open('heroes.pickle', 'rb') as heroes:
             all_heroes = pickle.load(heroes)
     except FileNotFoundError:
-        command = 'SuperHero.py'
+        command = 'python SuperHero.py'
         os.system(command)
-        with open('heros.pickle', 'rb') as heroes:
+        with open('heroes.pickle', 'rb') as heroes:
             all_heroes = pickle.load(heroes)
     
     hero_c = Hero.random_hero(all_heroes).hero_to_fight()

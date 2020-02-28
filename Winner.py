@@ -19,6 +19,8 @@ class Ui_WinnerWindow(object):
         WinnerWindow.setObjectName("WinnerWindow")
         WinnerWindow.setEnabled(True)
         WinnerWindow.resize(794, 606)
+        WinnerWindow.setFixedSize(794, 606)
+
         WinnerWindow.setStyleSheet("background-color: rgb(229, 229, 229);")
         self.centralwidget = QtWidgets.QWidget(WinnerWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -71,7 +73,7 @@ class Ui_WinnerWindow(object):
         _translate = QtCore.QCoreApplication.translate
         WinnerWindow.setWindowTitle(_translate("WinnerWindow", "MainWindow"))
         self.label_img.setText(_translate("WinnerWindow", "<html><head/><body><p><img src=\"image_w.jpg\"/></p></body></html>"))
-        self.label_3.setText(_translate("WinnerWindow", f"<html><head/><body><p align=\"center\"><span style=\" font-size:36pt; color:#515151;\">{self.hero_name}</span></p></body></html>"))
+        self.label_3.setText(_translate("WinnerWindow", f"<html><head/><body><p align=\"center\"><span style=\" font-size:22pt; color:#515151;\">{self.hero_name}</span></p></body></html>"))
         self.label_4.setText(_translate("WinnerWindow", "<html><head/><body><p align=\"center\"><span style=\" font-size:40pt; color:#515151;\">WINS!</span></p></body></html>"))
         self.label.setText(_translate("WinnerWindow", "<html><head/><body><p><img src=\"winner_bck.png\"/></p></body></html>"))
 
